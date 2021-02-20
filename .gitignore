@@ -132,3 +132,5 @@ dmypy.json
 *.csv
 
 to_ignore
+Data
+.idea
