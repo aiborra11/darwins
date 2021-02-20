@@ -40,7 +40,6 @@ class ProphetPredictor:
             name='daily',
             period=1,
             fourier_order=25
-
         )
 
         model.fit(train_set.reset_index().rename(columns={'index': 'ds', 'close': 'y'}))
