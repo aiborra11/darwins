@@ -134,3 +134,4 @@ dmypy.json
 to_ignore
 Data
 .idea
+*.idea
