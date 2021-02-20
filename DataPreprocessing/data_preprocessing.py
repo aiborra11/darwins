@@ -16,7 +16,6 @@ class DataPreprocessing:
         self.train_size: float = config.TRAIN_SIZE
         self.log_cols: Union[list, None] = config.LOG_COLS
 
-
     def get_labels(self):
         self.df['Label'] = np.where((self.df['close'] < self.df['close'].shift(-1)), 1, 0)
         return self.df
@@ -55,7 +54,6 @@ class FeaturesCalculator(DataPreprocessing):
         self.df['EMA_6'] = talib.EMA(self.df['close'].values, timeperiod=6)
         self.df['EMA_9'] = talib.EMA(self.df['close'].values, timeperiod=9)
         self.df['EMA_20'] = talib.EMA(self.df['close'].values, timeperiod=20)
-
 
         return self.df
 

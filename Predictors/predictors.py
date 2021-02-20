@@ -1,28 +1,23 @@
-import empyrical as em
 import pandas as pd
 import numpy as np
 import h2o
-import talib
-import time
-import os
-import matplotlib.dates as mdates
-import matplotlib.pyplot as plt
 
-from sklearn.model_selection import train_test_split
-from matplotlib.figure import figaspect
-from h2o.automl import H2OAutoML
+
 from fbprophet import Prophet
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from fbprophet.diagnostics import cross_validation, performance_metrics
 from h2o.automl import H2OAutoML
 
+from Configuration.config import Config
 
 
 class ProphetPredictor:
     def __init__(self, df: pd.DataFrame):
+        config = Config()
         self.df: pd.DataFrame = df
+        self.frequency: str = config.FREQUENCY
 
-    def execute_prophet(train_set: pd.DataFrame, test_Set: pd.DataFrame):
+    def execute_prophet(self, train_set: pd.DataFrame, test_set: pd.DataFrame):
         train_set = np.log(train_set.set_index('index'))
 
         # Training Prophet
@@ -47,16 +42,17 @@ class ProphetPredictor:
             fourier_order=25
         )
 
-        model.fit(data_train.reset_index().rename(columns={'index': 'ds', 'close': 'y'}))
+        model.fit(train_set.reset_index().rename(columns={'index': 'ds', 'close': 'y'}))
 
-        if len(data_test) > 0:
+        if len(test_set) > 0:
             print('Training partial dataset and predicting for test length...')
-            close_prices_fcast = model.make_future_dataframe(periods=len(data_test), freq=frequency)
+            close_prices_fcast = model.make_future_dataframe(periods=len(test_set), freq=self.frequency)
         else:
             print('Training the whole dataset and predicting for 6 months ahead...')
-            close_prices_fcast = model.make_future_dataframe(periods=4700, freq=frequency)
+            close_prices_fcast = model.make_future_dataframe(periods=4700, freq=self.frequency)
 
         data_fcast = model.predict(close_prices_fcast)
+        return data_fcast
 
 
 class H2oPredictor:
@@ -66,7 +62,7 @@ class H2oPredictor:
         self.h2o_df = self._create_h2o_df()
 
     def _create_h2o_df(self):
-        h2o_frame = h2o.H2OFrame(self.data)
+        h2o_frame = h2o.H2OFrame(self.df)
         h2o_df = h2o_frame.as_data_frame()
 
         duplicates = list(h2o_df[h2o_df.duplicated()].index)

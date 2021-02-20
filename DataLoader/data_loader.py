@@ -88,21 +88,3 @@ class DataLoader(Config):
 
 
 
-
-    def train_test_split(df: pd.DataFrame, TRAIN_SIZE: float, LOG_COLS: list):
-
-        df = [x for x in df.columns if x != 'Label']
-
-        print('Calculating logrithmic returns for OHCL candles...')
-        df = np.log(df[LOG_COLS])
-
-        data_train = df.iloc[:int(len(df) * TRAIN_SIZE)]
-        data_train_labels = df.iloc[:int(len(df) * TRAIN_SIZE)]
-
-        data_test = df.iloc[int(len(df) * TRAIN_SIZE):]
-        data_test_labels = df.iloc[int(len(df) * TRAIN_SIZE):]
-
-        return data_train, data_test
-
-
-
