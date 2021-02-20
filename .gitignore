@@ -130,3 +130,5 @@ dmypy.json
 
 .csv
 *.csv
+
+to_ignore
