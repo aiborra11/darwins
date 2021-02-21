@@ -1,6 +1,6 @@
-from DataLoader.data_loader import DataLoader
+from src.DataLoader.data_loader import DataLoader
 from Configuration.config import Config
-from DataPreprocessing.data_preprocessing import (DataPreprocessing, FeaturesCalculator)
+from src.DataPreprocessing.data_preprocessing import FeaturesCalculator
 
 
 dataloader = DataLoader()
