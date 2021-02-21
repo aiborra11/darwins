@@ -14,6 +14,6 @@ class Config:
     TIMEFRAME: str = '1H'
 
     OPERATING_MARKETS: bool = True
-    TECHNICAL_INDICATORS: bool = False
+    TECHNICAL_INDICATORS: bool = True
 
 config=Config()
