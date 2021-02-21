@@ -14,7 +14,7 @@ class DataLoader:
         self._candles: bool = config.CANDLES_DATA
         self._scores: bool = config.SCORES_DATA
 
-        self._available_darwins_candles, self._available_darwins_scores = self._get_available_darwins()
+        self.__available_darwins_candles, self.__available_darwins_scores = self._get_available_darwins()
 
         self._valid_darwins: list = config.VALID_DARWINS
         self.data_candles: Union[pd.DataFrame, None] = None
@@ -44,7 +44,7 @@ class DataLoader:
         scores_directory = self._scores_path
 
         if self._candles:
-            if darwin in self._valid_darwins and darwin in self._available_darwins_candles:
+            if darwin in self._valid_darwins and darwin in self.__available_darwins_candles:
                 self.data_candles = pd.read_csv(f'{candles_directory}/DARWINUniverseCandlesOHLC_{darwin}_train.csv',
                                                 index_col='Unnamed: 0')
                 # If price remains the same means the darwin is not doing trades
@@ -65,7 +65,7 @@ class DataLoader:
             else:
                 print(f'There is not available data for {darwin}')
         else:
-            if darwin in self._valid_darwins and darwin in self._available_darwins_scores:
+            if darwin in self._valid_darwins and darwin in self.__available_darwins_scores:
                 self.data_scores = pd.read_csv(f'{scores_directory}/scoresData_{darwin}_train.csv', index_col='eod_ts')
             return None, self.data_scores
 

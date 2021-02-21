@@ -2,7 +2,7 @@ class Config:
     CANDLES_PATH = 'Data/darwinex/trainTimeSeries/trainTimeSeries/TrainCandles'
     SCORES_PATH = 'Data/darwinex/trainTimeSeries/trainTimeSeries/TrainScores'
 
-    CANDLES_DATA = False
+    CANDLES_DATA = True
     SCORES_DATA = True
 
     VALID_DARWINS = ["REU", "VRT", "EEY", "JTL", "SEH", "BSX", "OJG", "UEI", "HQU", "ZXW", "LEN", "YEC",
@@ -11,6 +11,6 @@ class Config:
     TRAIN_SIZE = 0.8
     LOG_COLS = ['close', 'max', 'min', 'open']
 
-    TIMEFRAME = '3h'
+    TIMEFRAME = '1H'
 
 config=Config()

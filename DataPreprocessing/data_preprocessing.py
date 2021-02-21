@@ -14,43 +14,49 @@ class DataPreprocessing:
         self.df: [pd.DataFrame, None] = df
 
         self.timeframe: str = config.TIMEFRAME
-        self.df: pd.DataFrame = self.datetime_indexer()
+        self.df: pd.DataFrame = self._datetime_indexer()
         self._candles: bool = config.CANDLES_DATA
         self._scores: bool = config.SCORES_DATA
-        self.resampled_candles: Union[pd.DataFrame, None] = None
-        self.resampled_scores: Union[pd.DataFrame, None] = None
-        self.resampled_df: Union[pd.DataFrame, None] = None
+        self.__resampled_candles: Union[pd.DataFrame, None] = None
+        self.__resampled_scores: Union[pd.DataFrame, None] = None
+        self._resampled_df: Union[pd.DataFrame, None] = self._timeframe_conversor()
+        self._labeled_data = self._get_labels()
+
 
         self.train_size: float = config.TRAIN_SIZE
         self.log_cols: Union[list, None] = config.LOG_COLS
 
-    def datetime_indexer(self):
+    def _datetime_indexer(self):
         self.df = self.df.reset_index().rename(columns={'index': 'timestamp'})
         self.df['timestamp'] = self.df['timestamp'].map(lambda t: datetime.strptime(str(t), '%Y-%m-%d %H:%M:%S'))
         self.df = self.df.set_index('timestamp')
         return self.df
 
-    def timeframe_conversor(self):
+    def _timeframe_conversor(self):
         frequency = self.timeframe
         if self._candles:
-            self.resampled_candles = (self.df.resample(frequency).agg({'open': 'first', 'max':
+            self.__resampled_candles = (self.df.resample(frequency).agg({'open': 'first', 'max':
                                                                        'max', 'min': 'min', 'close': 'last'}))
         if self._scores:
-            self.resampled_scores = self.df[self.df.columns[~self.df.columns.isin(['open', 'close', 'max', 'min'])]]\
+            self.__resampled_scores = self.df[self.df.columns[~self.df.columns.isin(['open', 'close', 'max', 'min'])]]\
                                                                                             .resample(frequency).mean()
-        if self.resampled_candles is not None and self.resampled_scores is not None:
-            self.resampled_df = pd.merge(self.resampled_candles, self.resampled_scores, on='timestamp', how='left')
+        if self.__resampled_candles is not None and self.__resampled_scores is not None:
+            self._resampled_df = pd.merge(self.__resampled_candles, self.__resampled_scores, on='timestamp', how='left')
         else:
-            if self.resampled_candles is not None:
-                self.resampled_df = self.resampled_candles
-            if self.resampled_scores is not None:
-                self.resampled_df = self.resampled_scores
+            if self.__resampled_candles is not None:
+                self._resampled_df = self.__resampled_candles
+            if self.__resampled_scores is not None:
+                self._resampled_df = self.__resampled_scores
         self._release_memory()
-        return self.resampled_df
+        return self._resampled_df
 
-    def get_labels(self):
-        self.df['Label'] = np.where((self.df['close'] < self.df['close'].shift(-1)), 1, 0)
-        return self.df
+    def _get_labels(self):
+        if self._candles:
+            self._resampled_df['Label'] = np.where((self._resampled_df['close'] <
+                                                    self._resampled_df['close'].shift(-1)), 1, 0)
+        else:
+            print('There are no closing values, so we cannot perform any labeling.')
+        return self._resampled_df
 
     def get_logarithmic_data(self):
         self.df = np.log(self.df[self.log_cols])

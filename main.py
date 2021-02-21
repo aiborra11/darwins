@@ -11,7 +11,7 @@ for darwin in darwins[:1]:
     # print(data)
     data_preprocessed = DataPreprocessing(data)
     # print(data_preprocessed)
-    data_timeframe = data_preprocessed.timeframe_conversor()
+    # data_timeframe = data_preprocessed.timeframe_conversor()
     # data_timeframe = data_indexed.timeframe_conversor()
-    print(data_timeframe)
+    # print(data_timeframe)
 
