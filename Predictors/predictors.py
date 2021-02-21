@@ -56,7 +56,6 @@ class ProphetPredictor:
 
 
 class H2oPredictor:
-
     def __init__(self, df: pd.DataFrame):
         self.df: pd.DataFrame = df
         self.h2o_df = self._create_h2o_df()

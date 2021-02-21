@@ -7,7 +7,7 @@ from typing import (Union)
 from Configuration.config import Config
 
 
-class DataLoader(Config):
+class DataLoader:
     def __init__(self):
         config = Config()
         self._candles_path: str = config.CANDLES_PATH
@@ -54,7 +54,6 @@ class DataLoader(Config):
                     empty_data.append(darwin)
                 else:
                     self.data_candles = self.data_candles[self.data_candles['close'].notna()]
-
                     if self._scores:
                         try:
                             self.data_scores = pd.read_csv(f'{scores_directory}/scoresData_{darwin}_train.csv',
