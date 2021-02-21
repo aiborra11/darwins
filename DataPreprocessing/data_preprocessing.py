@@ -61,8 +61,8 @@ class DataPreprocessing:
         return self._labeled_data
 
     def train_test_split(self):
-        training_set = self.log_df.iloc[:int(len(self.log_df)*self.train_size)]
-        testing_set = self.log_df.iloc[int(len(self.log_df)*self.train_size):]
+        training_set = self._df.iloc[:int(len(self._df)*self.train_size)]
+        testing_set = self._df.iloc[int(len(self._df)*self.train_size):]
         self._release_memory()
         return training_set, testing_set
 

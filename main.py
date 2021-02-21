@@ -11,6 +11,3 @@ for darwin in darwins[:1]:
 
     data_features = FeaturesCalculator(data)
     train, test = data_features.train_test_split()
-
-    print(train)
-    print(test)
