@@ -4,18 +4,17 @@ import os
 
 from typing import (Union)
 
-from Configuration.config import Config
+from Configuration.config import config
 
 
-class DataLoader(Config):
+class DataLoader:
     def __init__(self):
-        config = Config()
         self._candles_path: str = config.CANDLES_PATH
         self._scores_path: str = config.SCORES_PATH
         self._candles: bool = config.CANDLES_DATA
         self._scores: bool = config.SCORES_DATA
 
-        self._available_darwins_candles, self._available_darwins_scores = self._get_available_darwins()
+        self.__available_darwins_candles, self.__available_darwins_scores = self._get_available_darwins()
 
         self._valid_darwins: list = config.VALID_DARWINS
         self.data_candles: Union[pd.DataFrame, None] = None
@@ -45,7 +44,7 @@ class DataLoader(Config):
         scores_directory = self._scores_path
 
         if self._candles:
-            if darwin in self._valid_darwins and darwin in self._available_darwins_candles:
+            if darwin in self._valid_darwins and darwin in self.__available_darwins_candles:
                 self.data_candles = pd.read_csv(f'{candles_directory}/DARWINUniverseCandlesOHLC_{darwin}_train.csv',
                                                 index_col='Unnamed: 0')
                 # If price remains the same means the darwin is not doing trades
@@ -66,7 +65,7 @@ class DataLoader(Config):
             else:
                 print(f'There is not available data for {darwin}')
         else:
-            if darwin in self._valid_darwins and darwin in self._available_darwins_scores:
+            if darwin in self._valid_darwins and darwin in self.__available_darwins_scores:
                 self.data_scores = pd.read_csv(f'{scores_directory}/scoresData_{darwin}_train.csv', index_col='eod_ts')
             return None, self.data_scores
 
@@ -77,8 +76,10 @@ class DataLoader(Config):
             data_candles = self.data_candles.reset_index()
             data = pd.merge(data_candles, data_scores, on='index', how='left')
         else:
-            data = pd.concat([self.data_candles, self.data_scores], axis=0)
+            data = pd.concat([self.data_candles, self.data_scores], axis=0).reset_index().rename(columns=
+                                                                                                 {'eod_ts': 'index'})
         self._release_memory()
+        data = data.ffill()
         return data
 
     def _release_memory(self):

@@ -11,4 +11,6 @@ class Config:
     TRAIN_SIZE = 0.8
     LOG_COLS = ['close', 'max', 'min', 'open']
 
-    FREQUENCY = '1H'
+    TIMEFRAME = '1H'
+
+config=Config()
