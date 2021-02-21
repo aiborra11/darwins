@@ -6,7 +6,6 @@ from datetime import datetime
 from typing import (Union)
 
 from Configuration.config import config
-from DataLoader.data_loader import DataLoader
 
 
 class DataPreprocessing:
@@ -23,7 +22,7 @@ class DataPreprocessing:
         self._labeled_data: pd.DataFrame = self._get_labels()
 
         self._log_cols: Union[list, None] = config.LOG_COLS
-        self._log_df = self._labeled_data if not self._log_cols else self._get_logarithmic_data()
+        self.log_df = self._labeled_data if not self._log_cols else self._get_logarithmic_data()
         self.train_size: float = config.TRAIN_SIZE
 
     def _datetime_indexer(self):
@@ -62,8 +61,8 @@ class DataPreprocessing:
         return self._labeled_data
 
     def train_test_split(self):
-        training_set = self._log_df.iloc[:int(len(self._log_df)*self.train_size)]
-        testing_set = self._log_df.iloc[int(len(self._log_df)*self.train_size):]
+        training_set = self._df.iloc[:int(len(self._df)*self.train_size)]
+        testing_set = self._df.iloc[int(len(self._df)*self.train_size):]
         self._release_memory()
         return training_set, testing_set
 
@@ -73,33 +72,33 @@ class DataPreprocessing:
         self.resampled_scores = None
         self._resampled_df = None
         self._labeled_data = None
-        self._log_df = None
+        self.log_df = None
 
 
 class FeaturesCalculator(DataPreprocessing):
-    def __init__(self, df: pd.DataFrame):
-        self.df: pd.DataFrame() = df
+    def __init__(self, df):
+        super().__init__(df)
+        self._df = df
+        self._df = self.session_identifier() if config.OPERATING_MARKETS else self._df
+        self._df = self.technical_indicators() if config.TECHNICAL_INDICATORS else self._df
 
     def session_identifier(self):
+        self._df['date'], self._df['hour'] = self._df['index'].str.split(' ', 1).str
+        self._df['hour'] = self._df['hour'].str.split(':', 1).str[0]
+        self._df['hour'] = self._df['hour'].astype(int)
+        self._df.loc[(self._df['hour'] >= 1) & (self._df['hour'] <= 7), 'session'] = 1             # Tokyo
+        self._df.loc[(self._df['hour'] >= 8) & (self._df['hour'] <= 15), 'session'] = 2            # London
+        self._df.loc[(self._df['hour'] >= 15) & (self._df['hour'] <= 17), 'session'] = 3           # NY + London
+        self._df.loc[(self._df['hour'] >= 17) & (self._df['hour'] <= 22), 'session'] = 4           # NY
+        self._df.loc[(self._df['hour'] > 22) | (self._df['hour'] == 0), 'session'] = 5             # Others
 
-        self.df['hour'] = self.df['hour'].str.split(':', 1).str[0]
-        self.df['hour'] = self.df['hour'].astype(int)
-
-        self.df.loc[(self.df['hour'] >= 1) & (self.df['hour'] <= 7), 'session'] = 1             # Tokyo
-        self.df.loc[(self.df['hour'] >= 8) & (self.df['hour'] <= 15), 'session'] = 2            # London
-        self.df.loc[(self.df['hour'] >= 15) & (self.df['hour'] <= 17), 'session'] = 3           # NY + London
-        self.df.loc[(self.df['hour'] >= 17) & (self.df['hour'] <= 22), 'session'] = 4           # NY
-        self.df.loc[(self.df['hour'] > 22) | (self.df['hour'] == 0), 'session'] = 5             # Others
-
-        return self.df
+        return self._df
 
     def technical_indicators(self):
-
-        self.df['EMA_3'] = talib.EMA(self.df['close'].values, timeperiod=3)
-        self.df['EMA_6'] = talib.EMA(self.df['close'].values, timeperiod=6)
-        self.df['EMA_9'] = talib.EMA(self.df['close'].values, timeperiod=9)
-        self.df['EMA_20'] = talib.EMA(self.df['close'].values, timeperiod=20)
-
-        return self.df
+        self._df['EMA_3'] = talib.EMA(self._df['close'].values, timeperiod=3)
+        self._df['EMA_6'] = talib.EMA(self._df['close'].values, timeperiod=6)
+        self._df['EMA_9'] = talib.EMA(self._df['close'].values, timeperiod=9)
+        self._df['EMA_20'] = talib.EMA(self._df['close'].values, timeperiod=20)
+        return self._df
 
 
