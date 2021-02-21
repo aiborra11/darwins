@@ -4,12 +4,11 @@ import os
 
 from typing import (Union)
 
-from Configuration.config import Config
+from Configuration.config import config
 
 
-class DataLoader(Config):
+class DataLoader:
     def __init__(self):
-        config = Config()
         self._candles_path: str = config.CANDLES_PATH
         self._scores_path: str = config.SCORES_PATH
         self._candles: bool = config.CANDLES_DATA
@@ -77,8 +76,10 @@ class DataLoader(Config):
             data_candles = self.data_candles.reset_index()
             data = pd.merge(data_candles, data_scores, on='index', how='left')
         else:
-            data = pd.concat([self.data_candles, self.data_scores], axis=0)
+            data = pd.concat([self.data_candles, self.data_scores], axis=0).reset_index().rename(columns=
+                                                                                                 {'eod_ts': 'index'})
         self._release_memory()
+        data = data.ffill()
         return data
 
     def _release_memory(self):
