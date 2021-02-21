@@ -8,4 +8,8 @@ darwins = Config().VALID_DARWINS
 for darwin in darwins[:1]:
     data = dataloader.merge_dfs(darwin)
     data_preprocessed = DataPreprocessing(data)
-    # data_preprocessed.get_logarithmic_data()
+    training_set, testing_set = data_preprocessed.train_test_split()
+    print(training_set)
+    print(testing_set)
+
+

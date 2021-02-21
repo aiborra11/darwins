@@ -11,35 +11,34 @@ from DataLoader.data_loader import DataLoader
 
 class DataPreprocessing:
     def __init__(self, df: pd.DataFrame):
-        self.df: [pd.DataFrame, None] = df
+        self._df: [pd.DataFrame, None] = df
 
         self.timeframe: str = config.TIMEFRAME
-        self.df: pd.DataFrame = self._datetime_indexer()
+        self._df: pd.DataFrame = self._datetime_indexer()
         self._candles: bool = config.CANDLES_DATA
         self._scores: bool = config.SCORES_DATA
         self._resampled_candles: Union[pd.DataFrame, None] = None
         self._resampled_scores: Union[pd.DataFrame, None] = None
-        self._resampled_df: Union[pd.DataFrame, None] = self._timeframe_conversor()
+        self._resampled_df: Union[pd.DataFrame, None] = self._timeframe_resampler()
         self._labeled_data: pd.DataFrame = self._get_labels()
 
         self._log_cols: Union[list, None] = config.LOG_COLS
         self._log_df = self._labeled_data if not self._log_cols else self._get_logarithmic_data()
-        print(self._log_df)
         self.train_size: float = config.TRAIN_SIZE
 
     def _datetime_indexer(self):
-        self.df = self.df.reset_index().rename(columns={'index': 'timestamp'})
-        self.df['timestamp'] = self.df['timestamp'].map(lambda t: datetime.strptime(str(t), '%Y-%m-%d %H:%M:%S'))
-        self.df = self.df.set_index('timestamp')
-        return self.df
+        self._df = self._df.reset_index().rename(columns={'index': 'timestamp'})
+        self._df['timestamp'] = self._df['timestamp'].map(lambda t: datetime.strptime(str(t), '%Y-%m-%d %H:%M:%S'))
+        self._df = self._df.set_index('timestamp')
+        return self._df
 
-    def _timeframe_conversor(self):
+    def _timeframe_resampler(self):
         frequency = self.timeframe
         if self._candles:
-            self._resampled_candles = (self.df.resample(frequency).agg({'open': 'first', 'max':
+            self._resampled_candles = (self._df.resample(frequency).agg({'open': 'first', 'max':
                                                                        'max', 'min': 'min', 'close': 'last'}))
         if self._scores:
-            self._resampled_scores = self.df[self.df.columns[~self.df.columns.isin(['open', 'close', 'max', 'min'])]]\
+            self._resampled_scores = self._df[self._df.columns[~self._df.columns.isin(['open', 'close', 'max', 'min'])]]\
                                                                                             .resample(frequency).mean()
         if self._resampled_candles is not None and self._resampled_scores is not None:
             self._resampled_df = pd.merge(self._resampled_candles, self._resampled_scores, on='timestamp', how='left')
@@ -48,7 +47,6 @@ class DataPreprocessing:
                 self._resampled_df = self._resampled_candles
             if self._resampled_scores is not None:
                 self._resampled_df = self._resampled_scores
-        self._release_memory()
         return self._resampled_df
 
     def _get_labels(self):
@@ -61,18 +59,21 @@ class DataPreprocessing:
 
     def _get_logarithmic_data(self):
         self._labeled_data[config.LOG_COLS] = np.log(self._labeled_data[self._log_cols])
-
         return self._labeled_data
 
     def train_test_split(self):
-        data_train = self.df.iloc[:int(len(self.df)*self.train_size)]
-        data_test = self.df.iloc[int(len(self.df)*self.train_size):]
-        return data_train, data_test
+        training_set = self._log_df.iloc[:int(len(self._log_df)*self.train_size)]
+        testing_set = self._log_df.iloc[int(len(self._log_df)*self.train_size):]
+        self._release_memory()
+        return training_set, testing_set
 
     def _release_memory(self):
-        self.df = None
-        self.resampled_candles = None
+        self._df = None
+        self._resampled_candles = None
         self.resampled_scores = None
+        self._resampled_df = None
+        self._labeled_data = None
+        self._log_df = None
 
 
 class FeaturesCalculator(DataPreprocessing):
