@@ -15,7 +15,7 @@ class ProphetPredictor:
     def __init__(self, df: pd.DataFrame):
         config = Config()
         self.df: pd.DataFrame = df
-        self.frequency: str = config.FREQUENCY
+        self.frequency: str = config.TIMEFRAME
 
     def execute_prophet(self, train_set: pd.DataFrame, test_set: pd.DataFrame):
         train_set = np.log(train_set.set_index('index'))

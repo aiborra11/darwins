@@ -11,7 +11,7 @@ class Config:
     TRAIN_SIZE: float = 0.8
     LOG_COLS: list = ['close', 'max', 'min', 'open']
 
-    TIMEFRAME: str = '1H'
+    TIMEFRAME: str = '4H'
 
     OPERATING_MARKETS: bool = True
     TECHNICAL_INDICATORS: bool = True
