@@ -1,5 +1,5 @@
 from src.DataLoader.data_loader import DataLoader
-from Configuration.config import config
+from config import config
 from src.DataPreprocessing.data_preprocessing import DataPreprocessing
 
 
@@ -14,3 +14,5 @@ for darwin in darwins[:1]:
     print(darwin)
     print(train)
     print(test)
+
+    print(test.columns)

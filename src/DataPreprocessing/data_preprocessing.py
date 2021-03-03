@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime
 from typing import (Union)
 
-from Configuration.config import config
+from config import config
 
 class FeaturesCalculator:
     def __init__(self):
@@ -63,11 +63,11 @@ class DataPreprocessing(FeaturesCalculator):
         self.resampled_df = self.session_identifier() if config.OPERATING_MARKETS else self.resampled_df
         self.technical_indicators = self.technical_indicators() if config.TECHNICAL_INDICATORS else self.resampled_df
 
-        self._labeled_data: pd.DataFrame = self._get_labels()
+        self._labeled_data: pd.DataFrame = self._get_labels() if self._candles else self.resampled_df
 
         self._log_candles: bool = config.LOG_CANDLES
         self._log_technical_indicators: bool = config.LOG_TECHNICAL_INDICATORS
-        self.log_df = self._get_logarithmic_data()
+        self.log_df = self._get_logarithmic_data() if self._candles else self._labeled_data.ffill(inplace=True)
 
         self.train_size: float = config.TRAIN_SIZE
 
@@ -103,16 +103,20 @@ class DataPreprocessing(FeaturesCalculator):
         return self.resampled_df
 
     def _get_logarithmic_data(self):
-        self._labeled_data[['close', 'max', 'min', 'open']] = \
-            np.log(self._labeled_data[['close', 'max', 'min', 'open']]) \
-            if self._log_candles else self._labeled_data[['close', 'max', 'min', 'open']]
-
-        self.technical_indicators_df[list(self.technical_indicators_df.columns)] = \
-            np.log(self.technical_indicators_df[list(self.technical_indicators_df.columns)]) if \
-            self._log_technical_indicators else self.technical_indicators_df[list(self.technical_indicators_df.columns)]
+        if self._log_candles:
+            self._labeled_data[['close', 'max', 'min', 'open']] =\
+                np.log(self._labeled_data[['close', 'max', 'min', 'open']])
+            if self._log_technical_indicators:
+                self.technical_indicators_df[list(self.technical_indicators_df.columns)] = \
+                    np.log(self.technical_indicators_df[list(self.technical_indicators_df.columns)])
+            else:
+                self.technical_indicators_df[list(self.technical_indicators_df.columns)] = \
+                    self.technical_indicators_df[list(self.technical_indicators_df.columns)]
+        else:
+            self._labeled_data[['close', 'max', 'min', 'open']] = self._labeled_data[['close', 'max', 'min', 'open']]
 
         self._labeled_data = pd.concat([self._labeled_data, self.technical_indicators_df], axis=1)
-        return self._labeled_data
+        return self._labeled_data.ffill(inplace=True)
 
     def train_test_split(self):
         training_set = self._labeled_data.iloc[:int(len(self._labeled_data) * self.train_size)]

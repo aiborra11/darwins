@@ -4,11 +4,8 @@ import h2o
 
 
 from fbprophet import Prophet
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-from fbprophet.diagnostics import cross_validation, performance_metrics
-from h2o.automl import H2OAutoML
 
-from Configuration.config import Config
+from config import Config
 
 
 class ProphetPredictor:
