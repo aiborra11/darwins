@@ -114,9 +114,9 @@ class DataPreprocessing(FeaturesCalculator):
         self._labeled_data = pd.concat([self._labeled_data, self.technical_indicators_df], axis=1)
         return self._labeled_data
 
-    def train_test_split(self, df):
-        training_set = self.df.iloc[:int(len(self.df) * self.train_size)]
-        testing_set = self.df.iloc[int(len(self.df) * self.train_size):]
+    def train_test_split(self):
+        training_set = self._labeled_data.iloc[:int(len(self._labeled_data) * self.train_size)]
+        testing_set = self._labeled_data.iloc[int(len(self._labeled_data) * self.train_size):]
         self._release_memory()
         return training_set, testing_set
 

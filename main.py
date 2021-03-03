@@ -10,8 +10,7 @@ for darwin in darwins[:1]:
     data = dataloader.merge_dfs(darwin)
 
     data_features = DataPreprocessing(data)
-    train, test = data_features.train_test_split(data_features)
+    train, test = data_features.train_test_split()
     print(darwin)
-    # print(darwin.columns)
-    # print(train)
-    # print(test)
+    print(train)
+    print(test)
