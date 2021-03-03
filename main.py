@@ -12,5 +12,6 @@ for darwin in darwins[:1]:
     data_features = DataPreprocessing(data)
     train, test = data_features.train_test_split(data_features)
     print(darwin)
-    print(train)
-    print(test)
+    # print(darwin.columns)
+    # print(train)
+    # print(test)

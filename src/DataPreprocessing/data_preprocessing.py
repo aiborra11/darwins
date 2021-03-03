@@ -9,14 +9,15 @@ from Configuration.config import config
 
 class FeaturesCalculator:
     def __init__(self):
-        # self.df = self.session_identifier(df) if config.OPERATING_MARKETS else df
-        # self.df = self.technical_indicators() if config.TECHNICAL_INDICATORS else df
         self.resampled_df: Union[pd.DataFrame, None] = None
+        self.technical_indicators_df: Union[pd.DataFrame, None] = None
+
 
     def session_identifier(self):
         self.resampled_df = self.resampled_df.reset_index()
-        self.resampled_df['date'], self.resampled_df['hour'] = self.resampled_df['timestamp'].astype(str)\
-                                                                                             .str.split(' ', 1).str
+        timestamp = self.resampled_df['timestamp'].astype(str).str.split(' ', n=1, expand=True)
+        self.resampled_df['date'], self.resampled_df['hour'] = timestamp[0], timestamp[1]
+
         self.resampled_df['hour'] = self.resampled_df['hour'].str.split(':', 1).str[0]
         self.resampled_df['hour'] = self.resampled_df['hour'].astype(int)
 
@@ -29,12 +30,19 @@ class FeaturesCalculator:
         return self.resampled_df
 
     def technical_indicators(self):
-        self.resampled_df['EMA_3'] = talib.EMA(self.resampled_df['close'].values, timeperiod=3)
-        self.resampled_df['EMA_6'] = talib.EMA(self.resampled_df['close'].values, timeperiod=6)
-        self.resampled_df['EMA_9'] = talib.EMA(self.resampled_df['close'].values, timeperiod=9)
-        self.resampled_df['EMA_20'] = talib.EMA(self.resampled_df['close'].values, timeperiod=20)
+        self.resampled_df['close'] = self.resampled_df[['close', 'open', 'max', 'min']].ffill()
 
-        return self.resampled_df
+        self.technical_indicators_df = pd.DataFrame()
+        self.technical_indicators_df['EMA_3'] = talib.EMA(self.resampled_df['close'].to_numpy(), timeperiod=3)
+        self.technical_indicators_df['EMA_6'] = talib.EMA(self.resampled_df['close'].to_numpy(), timeperiod=6)
+        self.technical_indicators_df['EMA_9'] = talib.EMA(self.resampled_df['close'].to_numpy(), timeperiod=9)
+        self.technical_indicators_df['EMA_20'] = talib.EMA(self.resampled_df['close'].to_numpy(), timeperiod=20)
+        self.technical_indicators_df['SMA_3'] = talib.SMA(self.resampled_df['close'].to_numpy(), timeperiod=3)
+
+        self.technical_indicators_df = self.technical_indicators_df.bfill()
+
+        return self.technical_indicators_df
+
 
 
 class DataPreprocessing(FeaturesCalculator):
@@ -47,20 +55,20 @@ class DataPreprocessing(FeaturesCalculator):
 
         self._candles: bool = config.CANDLES_DATA
         self._scores: bool = config.SCORES_DATA
+
         self._resampled_candles: Union[pd.DataFrame, None] = None
         self._resampled_scores: Union[pd.DataFrame, None] = None
+
         self.resampled_df: Union[pd.DataFrame, None] = self._timeframe_resampler()
-
         self.resampled_df = self.session_identifier() if config.OPERATING_MARKETS else self.resampled_df
-        print(self.resampled_df)
-
-        self.resampled_df = self.technical_indicators() if config.TECHNICAL_INDICATORS else self.resampled_df
-        print(self.resampled_df)
+        self.technical_indicators = self.technical_indicators() if config.TECHNICAL_INDICATORS else self.resampled_df
 
         self._labeled_data: pd.DataFrame = self._get_labels()
 
-        self._log_cols: Union[list, None] = config.LOG_COLS
-        self.log_df = self._labeled_data if not self._log_cols else self._get_logarithmic_data()
+        self._log_candles: bool = config.LOG_CANDLES
+        self._log_technical_indicators: bool = config.LOG_TECHNICAL_INDICATORS
+        self.log_df = self._get_logarithmic_data()
+
         self.train_size: float = config.TRAIN_SIZE
 
     def _datetime_indexer(self):
@@ -95,7 +103,15 @@ class DataPreprocessing(FeaturesCalculator):
         return self.resampled_df
 
     def _get_logarithmic_data(self):
-        self._labeled_data[config.LOG_COLS] = np.log(self._labeled_data[self._log_cols])
+        self._labeled_data[['close', 'max', 'min', 'open']] = \
+            np.log(self._labeled_data[['close', 'max', 'min', 'open']]) \
+            if self._log_candles else self._labeled_data[['close', 'max', 'min', 'open']]
+
+        self.technical_indicators_df[list(self.technical_indicators_df.columns)] = \
+            np.log(self.technical_indicators_df[list(self.technical_indicators_df.columns)]) if \
+            self._log_technical_indicators else self.technical_indicators_df[list(self.technical_indicators_df.columns)]
+
+        self._labeled_data = pd.concat([self._labeled_data, self.technical_indicators_df], axis=1)
         return self._labeled_data
 
     def train_test_split(self, df):

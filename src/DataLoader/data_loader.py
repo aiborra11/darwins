@@ -83,7 +83,7 @@ class DataLoader:
     def _release_memory(self):
         self.data_scores = None
         self.data_candles = None
-
+        self.technical_indicators_df = None
 
 
 
