@@ -8,12 +8,16 @@ class Config:
     VALID_DARWINS: list = ["REU", "VRT", "EEY", "JTL", "SEH", "BSX", "OJG", "UEI", "HQU", "ZXW", "LEN", "YEC",
                            "UYZ", "LWK", "ACY", "HEO", "FIR", "BGN"]
 
-    TRAIN_SIZE: float = 0.8
-    LOG_COLS: list = ['close', 'max', 'min', 'open']
-
-    TIMEFRAME: str = '1H'
-
     OPERATING_MARKETS: bool = True
-    TECHNICAL_INDICATORS: bool = False
+    TECHNICAL_INDICATORS: bool = True
+
+    LOG_CANDLES: bool = True
+    LOG_TECHNICAL_INDICATORS: bool = True
+
+    TRAIN_SIZE: float = 0.8
+
+    TIMEFRAME: str = '2H'
+
+
 
 config=Config()

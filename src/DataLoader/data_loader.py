@@ -1,10 +1,9 @@
 import pandas as pd
-import numpy as np
 import os
 
 from typing import (Union)
 
-from Configuration.config import config
+from config import config
 
 
 class DataLoader:
@@ -34,7 +33,7 @@ class DataLoader:
         if self._candles and self._scores:
             missing = [x for x in available_darwins_candles if x not in available_darwins_scores]
             if missing:
-                print(f'You have missing data for {missing} SCORES')
+                print(f'You have missing SCORES data for {missing}')
 
         return available_darwins_candles, available_darwins_scores
 
@@ -46,14 +45,13 @@ class DataLoader:
         if self._candles:
             if darwin in self._valid_darwins and darwin in self._available_darwins_candles:
                 self.data_candles = pd.read_csv(f'{candles_directory}/DARWINUniverseCandlesOHLC_{darwin}_train.csv',
-                                                index_col='Unnamed: 0')
+                                                index_col='Unnamed: 0').ffill()
                 # If price remains the same means the darwin is not doing trades
                 if len(set(self.data_candles['close'])) <= 1:
                     print(f'The {darwin} is invalid since it did not made any trade!!')
                     empty_data.append(darwin)
                 else:
                     self.data_candles = self.data_candles[self.data_candles['close'].notna()]
-
                     if self._scores:
                         try:
                             self.data_scores = pd.read_csv(f'{scores_directory}/scoresData_{darwin}_train.csv',
@@ -66,7 +64,7 @@ class DataLoader:
                 print(f'There is not available data for {darwin}')
         else:
             if darwin in self._valid_darwins and darwin in self._available_darwins_scores:
-                self.data_scores = pd.read_csv(f'{scores_directory}/scoresData_{darwin}_train.csv', index_col='eod_ts')
+                self.data_scores = pd.read_csv(f'{scores_directory}/scoresData_{darwin}_train.csv', index_col='eod_ts').bfill()
             return None, self.data_scores
 
     def merge_dfs(self, darwin: str):
@@ -85,7 +83,7 @@ class DataLoader:
     def _release_memory(self):
         self.data_scores = None
         self.data_candles = None
-
+        self.technical_indicators_df = None
 
 
 

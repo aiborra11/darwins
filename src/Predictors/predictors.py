@@ -4,18 +4,15 @@ import h2o
 
 
 from fbprophet import Prophet
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-from fbprophet.diagnostics import cross_validation, performance_metrics
-from h2o.automl import H2OAutoML
 
-from Configuration.config import Config
+from config import Config
 
 
 class ProphetPredictor:
     def __init__(self, df: pd.DataFrame):
         config = Config()
         self.df: pd.DataFrame = df
-        self.frequency: str = config.FREQUENCY
+        self.frequency: str = config.TIMEFRAME
 
     def execute_prophet(self, train_set: pd.DataFrame, test_set: pd.DataFrame):
         train_set = np.log(train_set.set_index('index'))
@@ -56,7 +53,6 @@ class ProphetPredictor:
 
 
 class H2oPredictor:
-
     def __init__(self, df: pd.DataFrame):
         self.df: pd.DataFrame = df
         self.h2o_df = self._create_h2o_df()
