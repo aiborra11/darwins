@@ -16,7 +16,7 @@ class Config:
 
     TRAIN_SIZE: float = 0.8
 
-    TIMEFRAME: str = '2H'
+    TIMEFRAME: str = '1D'
 
 
 config = Config()

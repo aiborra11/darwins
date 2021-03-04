@@ -16,23 +16,26 @@ class FeaturesCalculator:
     def session_identifier(self):
         self._resampled_df = self._resampled_df.reset_index()
         timestamp = self._resampled_df['timestamp'].astype(str).str.split(' ', n=1, expand=True)
-        self._resampled_df['date'], self._resampled_df['hour'] = timestamp[0], timestamp[1]
 
-        self._resampled_df['hour'] = self._resampled_df['hour'].str.split(':', 1).str[0]
-        self._resampled_df['hour'] = self._resampled_df['hour'].astype(int)
+        try:
+            self._resampled_df['date'], self._resampled_df['hour'] = timestamp[0], timestamp[1]
+            self._resampled_df['hour'] = self._resampled_df['hour'].str.split(':', 1).str[0]
+            self._resampled_df['hour'] = self._resampled_df['hour'].astype(int)
 
-        # Tokyo
-        self._resampled_df.loc[(self._resampled_df['hour'] >= 1) & (self._resampled_df['hour'] <= 7), 'session'] = 1
-        # London
-        self._resampled_df.loc[(self._resampled_df['hour'] >= 8) & (self._resampled_df['hour'] <= 15), 'session'] = 2
-        # NY + London
-        self._resampled_df.loc[(self._resampled_df['hour'] >= 15) & (self._resampled_df['hour'] <= 17), 'session'] = 3
-        # NY
-        self._resampled_df.loc[(self._resampled_df['hour'] >= 17) & (self._resampled_df['hour'] <= 22), 'session'] = 4
-        # Others
-        self._resampled_df.loc[(self._resampled_df['hour'] > 22) | (self._resampled_df['hour'] == 0), 'session'] = 5
+            # Tokyo
+            self._resampled_df.loc[(self._resampled_df['hour'] >= 1) & (self._resampled_df['hour'] <= 7), 'session'] = 1
+            # London
+            self._resampled_df.loc[(self._resampled_df['hour'] >= 8) & (self._resampled_df['hour'] <= 15), 'session'] = 2
+            # NY + London
+            self._resampled_df.loc[(self._resampled_df['hour'] >= 15) & (self._resampled_df['hour'] <= 17), 'session'] = 3
+            # NY
+            self._resampled_df.loc[(self._resampled_df['hour'] >= 17) & (self._resampled_df['hour'] <= 22), 'session'] = 4
+            # Others
+            self._resampled_df.loc[(self._resampled_df['hour'] > 22) | (self._resampled_df['hour'] == 0), 'session'] = 5
+            return self._resampled_df
 
-        return self._resampled_df
+        except KeyError:
+            return self._resampled_df
 
     def technical_indicators(self):
         self._resampled_df['close'] = self._resampled_df[['close', 'open', 'max', 'min']].ffill()

@@ -45,7 +45,7 @@ class DataLoader:
         if self._candles:
             if darwin in self._valid_darwins and darwin in self._available_darwins_candles:
                 self.data_candles = pd.read_csv(f'{candles_directory}/DARWINUniverseCandlesOHLC_{darwin}_train.csv',
-                                                index_col='Unnamed: 0').ffill()
+                                                index_col='Unnamed: 0')
                 # If price remains the same means the darwin is not doing trades
                 if len(set(self.data_candles['close'])) <= 1:
                     print(f'The {darwin} is invalid since it did not made any trade!!')
@@ -64,7 +64,7 @@ class DataLoader:
                 print(f'There is not available data for {darwin}')
         else:
             if darwin in self._valid_darwins and darwin in self._available_darwins_scores:
-                self.data_scores = pd.read_csv(f'{scores_directory}/scoresData_{darwin}_train.csv', index_col='eod_ts').bfill()
+                self.data_scores = pd.read_csv(f'{scores_directory}/scoresData_{darwin}_train.csv', index_col='eod_ts')
             return None, self.data_scores
 
     def merge_dfs(self, darwin: str):
