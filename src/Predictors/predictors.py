@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import h2o
+# import matplotlib as plt
 
 from fbprophet import Prophet
 
@@ -8,15 +9,16 @@ from config import Config
 
 
 class ProphetPredictor:
-    def __init__(self, df: pd.DataFrame):
+    def __init__(self, train_df: pd.DataFrame, test_df: pd.DataFrame):
         config = Config()
-        self.df: pd.DataFrame = df
+        self.train_set: pd.DataFrame = train_df
+        self.test_set: pd.DataFrame = test_df
+
         self.frequency: str = config.TIMEFRAME
+        self.log_candles: bool = config.LOG_CANDLES
 
-    def execute_prophet(self, train_set: pd.DataFrame, test_set: pd.DataFrame):
-        train_set = np.log(train_set.set_index('index'))
+    def execute_prophet(self):
 
-        # Training Prophet
         model = Prophet(
             growth='linear',
             interval_width=0.85,
@@ -37,17 +39,22 @@ class ProphetPredictor:
             period=1,
             fourier_order=25
         )
+        model.fit(self.train_set.reset_index().rename(columns={'timestamp': 'ds', 'close': 'y'}))
 
-        model.fit(train_set.reset_index().rename(columns={'index': 'ds', 'close': 'y'}))
-
-        if len(test_set) > 0:
+        if len(self.test_set) > 0:
             print('Training partial dataset and predicting for test length...')
-            close_prices_fcast = model.make_future_dataframe(periods=len(test_set), freq=self.frequency)
+            predicted_periods = model.make_future_dataframe(periods=len(self.test_set), freq=self.frequency)
+            print('check', predicted_periods)
         else:
             print('Training the whole dataset and predicting for 6 months ahead...')
-            close_prices_fcast = model.make_future_dataframe(periods=4700, freq=self.frequency)
+            predicted_periods = model.make_future_dataframe(periods=4700, freq=self.frequency)
 
-        data_fcast = model.predict(close_prices_fcast)
+        data_fcast = model.predict(predicted_periods)
+
+        model.plot(data_fcast).savefig('0.png')
+        model.plot_components(data_fcast).savefig('1.png')
+        data_fcast['yhat'] = np.exp(data_fcast['yhat']) if self.log_candles else data_fcast['yhat']
+
         return data_fcast
 
 
