@@ -19,5 +19,4 @@ class Config:
     TIMEFRAME: str = '2H'
 
 
-
-config=Config()
+config = Config()

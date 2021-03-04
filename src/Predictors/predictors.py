@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import h2o
 
-
 from fbprophet import Prophet
 
 from config import Config
