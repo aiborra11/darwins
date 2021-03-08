@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 
-from typing import (Union)
+from typing import (Union, List)
 
 from config import config
 
@@ -15,7 +15,7 @@ class DataLoader:
 
         self._available_darwins_candles, self._available_darwins_scores = self._get_available_darwins()
 
-        self._valid_darwins: list = config.VALID_DARWINS
+        self._valid_darwins: List[str] = config.VALID_DARWINS
         self.data_candles: Union[pd.DataFrame, None] = None
         self.data_scores: Union[pd.DataFrame, None] = None
 
