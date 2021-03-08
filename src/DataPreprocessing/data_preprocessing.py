@@ -72,11 +72,7 @@ class DataPreprocessing(FeaturesCalculator):
             else self._features
 
         self._labeled_data: pd.DataFrame = self._get_labels() if self._candles else self._technical_indicators_df
-        self._not_standardizer_columns = config.NOT_STANDARDIZARTION_COLS
-        # self._log_candles: bool = config.LOG_CANDLES
-        # self._log_technical_indicators: bool = config.LOG_TECHNICAL_INDICATORS
-        # self._log_df: Union[pd.DataFrame, None] = self.logarithmic_standardizer() if self._candles else \
-        #     self._labeled_data.ffill(inplace=True)
+        self._not_standardizer_columns = config.NOT_STANDARDIZATION_COLS
 
         self._train_size: float = config.TRAIN_SIZE
 
@@ -111,27 +107,6 @@ class DataPreprocessing(FeaturesCalculator):
             print('There are no closing values, so we cannot perform any labeling.')
         return self._technical_indicators_df
 
-    # def logarithmic_standardizer(self):
-    #     if self._log_candles:
-    #         print('Standardizing your data by using a logarithmic approach...')
-    #         self._labeled_data[['close', 'max', 'min', 'open']] =\
-    #             np.log(self._labeled_data[['close', 'max', 'min', 'open']])
-    #
-    #         if self._log_technical_indicators:
-    #             self.technical_indicators_df[list(self.technical_indicators_df.columns)] = \
-    #                 np.log(self.technical_indicators_df[list(self.technical_indicators_df.columns)])
-    #
-    #         elif self.technical_indicators_df:
-    #             self.technical_indicators_df[list(self.technical_indicators_df.columns)] = \
-    #                 self.technical_indicators_df[list(self.technical_indicators_df.columns)]
-    #         else:
-    #             print('Ignoring technical indicators...')
-    #     else:
-    #         print('Ignoring logarithmic standardizer...')
-    #
-    #     self._labeled_data = pd.concat([self._labeled_data, self.technical_indicators_df], axis=1)
-    #     return self._labeled_data.ffill(inplace=True)
-
     def logarithmic_standardizer(self):
         print('Standardizing your data by using a LOGARITHMIC approach...')
         self._labeled_data = self._labeled_data.set_index('timestamp')
@@ -140,7 +115,6 @@ class DataPreprocessing(FeaturesCalculator):
                 self._labeled_data[col] = np.log(self._labeled_data[col])
 
         return self._labeled_data.ffill(inplace=True)
-
 
     def scaler_standaradizer(self):
         print('Standardizing your data by using a SCALER approach...')
@@ -153,7 +127,6 @@ class DataPreprocessing(FeaturesCalculator):
 
         return self._labeled_data
 
-
     def train_test_split(self):
         training_set = self._labeled_data.iloc[:int(len(self._labeled_data) * self._train_size)]
         testing_set = self._labeled_data.iloc[int(len(self._labeled_data) * self._train_size):]
@@ -161,6 +134,7 @@ class DataPreprocessing(FeaturesCalculator):
         return training_set, testing_set
 
     def _release_memory(self):
+        self.df = None
         self._resampled_candles = None
         self.resampled_scores = None
         self._resampled_df = None
