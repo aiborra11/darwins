@@ -16,6 +16,7 @@ class ProphetPredictor:
         self.frequency: str = config.TIMEFRAME
 
     def execute_prophet(self):
+        logging.info('Executing PROPHET predictor')
 
         model = Prophet(
             growth='linear',
