@@ -16,7 +16,7 @@ class Config:
     OPERATING_MARKETS: bool = True
     if CANDLES_DATA:
         TECHNICAL_INDICATORS: bool = True
-        NOT_STANDARDIZATION_COLS = ['Label', 'date', 'hour']
+        NOT_STANDARDIZATION_COLS = ['timestamp', 'Label', 'date', 'hour']
 
     else:
         TECHNICAL_INDICATORS: bool = False
