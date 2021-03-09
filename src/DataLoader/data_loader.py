@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import logging
 
 from typing import (Union, List)
 
@@ -24,16 +25,18 @@ class DataLoader:
         available_darwins_scores = []
         if self._candles:
             available_darwins_candles = [list({name.split("_")[-2]})[0] for name in os.listdir(self._candles_path)]
-            print(f'You have {len(available_darwins_candles)} available darwins with CANDLE data: ',
-                  available_darwins_candles)
+            logging.info(f'You have {len(available_darwins_candles)} available darwins with CANDLE data: '
+                         f'{available_darwins_candles}')
+
         if self._scores:
             available_darwins_scores = [list({name.split("_")[-2]})[0] for name in os.listdir(self._scores_path)]
-            print(f'You have {len(available_darwins_scores)} available darwins with SCORES data: ',
-                  available_darwins_scores)
+            logging.info(f'You have {len(available_darwins_scores)} available darwins with SCORES data: '
+                         f'{available_darwins_scores}')
+
         if self._candles and self._scores:
             missing = [x for x in available_darwins_candles if x not in available_darwins_scores]
             if missing:
-                print(f'You have missing SCORES data for {missing}')
+                logging.warning(f'You have missing SCORES data for {missing}')
 
         return available_darwins_candles, available_darwins_scores
 
@@ -48,7 +51,7 @@ class DataLoader:
                                                 index_col='Unnamed: 0')
                 # If price remains the same means the darwin is not doing trades
                 if len(set(self.data_candles['close'])) <= 1:
-                    print(f'The {darwin} is invalid since it did not made any trade!!')
+                    logging.info(f'The {darwin} is invalid since it did not made any trade!!')
                     empty_data.append(darwin)
                 else:
                     self.data_candles = self.data_candles[self.data_candles['close'].notna()]
@@ -57,11 +60,11 @@ class DataLoader:
                             self.data_scores = pd.read_csv(f'{scores_directory}/scoresData_{darwin}_train.csv',
                                                            index_col='eod_ts')
                         except FileNotFoundError:
-                            print('There are not evaluation metrics for ', darwin)
+                            logging.warning('There are not evaluation metrics for ', darwin)
                     return self.data_candles, self.data_scores
                 return self.data_candles, None
             else:
-                print(f'There is not available data for {darwin}')
+                logging.warning(f'There is not available data for {darwin}')
         else:
             if darwin in self._valid_darwins and darwin in self._available_darwins_scores:
                 self.data_scores = pd.read_csv(f'{scores_directory}/scoresData_{darwin}_train.csv', index_col='eod_ts')
